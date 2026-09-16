@@ -1,16 +1,31 @@
-export const API_BASE =
-  import.meta.env?.VITE_API_URL ||
-  (typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:5000'
-    : 'https://neffto-solution-backend.vercel.app');
+const getApiBase = () => {
+  const envUrl = import.meta.env?.VITE_API_URL;
+  if (envUrl && !envUrl.includes('your-backend') && !envUrl.includes('placeholder')) {
+    return envUrl.replace(/\/$/, '');
+  }
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:5000';
+    }
+  }
+  return 'https://neffto-solution-backend.vercel.app';
+};
 
-export const WEBSITE_BASE =
-  import.meta.env?.VITE_PUBLIC_WEBSITE_URL ||
-  (typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:5173'
-    : 'https://nefftosolution.com');
+const getWebsiteBase = () => {
+  const envUrl = import.meta.env?.VITE_PUBLIC_WEBSITE_URL;
+  if (envUrl && !envUrl.includes('your-') && !envUrl.includes('placeholder')) {
+    return envUrl.replace(/\/$/, '');
+  }
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:5173';
+    }
+  }
+  return 'https://nefftosolution.com';
+};
+
+export const API_BASE = getApiBase();
+export const WEBSITE_BASE = getWebsiteBase();
 
 export const apiFetch = async (endpoint, options = {}) => {
   const token = localStorage.getItem('neffto_admin_token');
