@@ -36,9 +36,17 @@ import {
   Settings,
   Maximize2,
   Sliders,
+  LayoutTemplate,
+  Bookmark,
+  Table as TableIcon,
+  TrendingUp,
+  PlusCircle,
+  CheckCircle2,
+  HelpCircle,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { API_BASE, WEBSITE_BASE, apiFetch } from '../utils/api';
+import { blogTemplates } from '../utils/blogTemplates';
 
 const defaultCategories = [
   'Web Development',
@@ -49,6 +57,18 @@ const defaultCategories = [
   'Digital Marketing',
   'Software Architecture',
   'Tech Trends',
+];
+
+const quickInternalLinks = [
+  { name: 'Web Development', url: '/services/web-development', desc: 'Custom web, full stack & SaaS builds', icon: '🌐' },
+  { name: 'Shopify Custom Theme', url: '/services/web-development#shopify', desc: 'Shopify themes & e-commerce jump link', icon: '🛍️' },
+  { name: 'Mobile App Development', url: '/services/app-development', desc: 'iOS, Android & cross-platform apps', icon: '📱' },
+  { name: 'AI & Machine Learning', url: '/services/ai-machine-learning', desc: 'Chatbots, Python & intelligent automation', icon: '🧠' },
+  { name: 'Graphic Designing', url: '/services/graphic-designing', desc: 'Logos, branding & UI/UX Figma design', icon: '🎨' },
+  { name: 'Digital Marketing', url: '/services/digital-marketing', desc: 'Meta ads, Google Ads & marketing funnels', icon: '📈' },
+  { name: 'SEO Services', url: '/services/seo', desc: 'On-page, technical SEO & link building', icon: '🔍' },
+  { name: 'All Blog Articles', url: '/blogs', desc: 'Public tech journal & blog directory', icon: '📰' },
+  { name: 'Contact & Free Quote', url: '/contact', desc: 'Project estimation & consultation inquiry', icon: '✉️' },
 ];
 
 const slugify = (text) => {
@@ -112,6 +132,20 @@ const BlogStudio = () => {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
   const [copiedSlug, setCopiedSlug] = useState(false);
+
+  // Template Modal State
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState(null);
+
+  // Link & Anchor Tag Modal State
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkTab, setLinkTab] = useState('internal'); // 'internal', 'custom', 'anchor'
+  const [anchorText, setAnchorText] = useState('');
+  const [targetUrl, setTargetUrl] = useState('/services/web-development');
+  const [openInNewTab, setOpenInNewTab] = useState(false);
+  const [isCtaButton, setIsCtaButton] = useState(false);
+  const [inPageAnchorId, setInPageAnchorId] = useState('');
+  const [anchorTargetType, setAnchorTargetType] = useState('jump'); // 'jump' or 'target'
 
   const contentTextareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -330,6 +364,160 @@ const BlogStudio = () => {
     }, 50);
   };
 
+  // Template Selection
+  const handleApplyTemplate = (tmpl) => {
+    if (content.trim() && !window.confirm('Loading this template will replace current content. Continue?')) {
+      return;
+    }
+    setTitle(tmpl.title);
+    setSlug(slugify(tmpl.title));
+    setExcerpt(tmpl.excerpt);
+    setCategory(tmpl.category);
+    setIsCustomCat(false);
+    setTags(tmpl.tags);
+    setCoverImage(tmpl.coverImage);
+    setContent(tmpl.content);
+    setMetaTitle(tmpl.title);
+    setMetaDescription(tmpl.excerpt);
+    setKeywords(tmpl.tags.join(', '));
+    setShowTemplateModal(false);
+    showToast(`Loaded "${tmpl.name}" template successfully!`);
+  };
+
+  // Open Link Modal with selected text
+  const handleOpenLinkModal = () => {
+    const textarea = contentTextareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selected = textarea.value.substring(start, end);
+      if (selected.trim()) {
+        setAnchorText(selected.trim());
+      } else {
+        setAnchorText('');
+      }
+    }
+    setShowLinkModal(true);
+  };
+
+  // Apply Anchor / Hyperlink insertion
+  const handleInsertAnchorLink = () => {
+    const textarea = contentTextareaRef.current;
+    if (!textarea) return;
+
+    let snippet = '';
+
+    if (linkTab === 'anchor') {
+      const cleanId = inPageAnchorId.trim().replace(/^#/, '').toLowerCase().replace(/\s+/g, '-');
+      if (!cleanId) {
+        showToast('Please enter an Anchor ID (e.g. key-features)');
+        return;
+      }
+      if (anchorTargetType === 'target') {
+        snippet = `<h2 id="${cleanId}">${anchorText || 'Section Heading'}</h2>`;
+      } else {
+        snippet = `<a href="#${cleanId}">${anchorText || 'Jump to Section'}</a>`;
+      }
+    } else {
+      const url = targetUrl.trim();
+      if (!url) {
+        showToast('Please enter or select a destination URL');
+        return;
+      }
+      const text = anchorText.trim() || url;
+      const targetAttr = openInNewTab ? ' target="_blank" rel="noopener noreferrer"' : '';
+      const classAttr = isCtaButton ? ' class="cta-btn"' : '';
+      snippet = `<a href="${url}"${classAttr}${targetAttr}>${text}</a>`;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const prev = textarea.value;
+    const nextContent = prev.substring(0, start) + snippet + prev.substring(end);
+    setContent(nextContent);
+    setShowLinkModal(false);
+    showToast('Anchor link inserted into article!');
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + snippet.length, start + snippet.length);
+    }, 50);
+  };
+
+  // Insert Table shortcut
+  const handleInsertTable = () => {
+    const tableHtml = `\n<table class="w-full">
+  <thead>
+    <tr>
+      <th>Feature / Item</th>
+      <th>Specification</th>
+      <th>Key Benefit</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Core Architecture</strong></td>
+      <td>Microservices / API-first</td>
+      <td>Independent scaling & zero downtime</td>
+    </tr>
+    <tr>
+      <td><strong>Response Time</strong></td>
+      <td>&lt; 100ms</td>
+      <td>Exceptional Core Web Vitals score</td>
+    </tr>
+    <tr>
+      <td><strong>SEO Readiness</strong></td>
+      <td>Dynamic JSON-LD Schema</td>
+      <td>Immediate Google first-page indexing</td>
+    </tr>
+  </tbody>
+</table>\n`;
+    insertFormatting(tableHtml);
+    showToast('Comparison table inserted');
+  };
+
+  // Insert Callout Box
+  const handleInsertCallout = (type = 'info') => {
+    let calloutHtml = '';
+    if (type === 'tip') {
+      calloutHtml = `\n<div class="callout-box callout-tip">
+  <strong>💡 Pro Tip:</strong> Always optimize Core Web Vitals and pair technical performance with targeted <a href="/services/seo">dedicated SEO services</a> for maximum organic growth.
+</div>\n`;
+    } else if (type === 'cta') {
+      calloutHtml = `\n<div class="callout-box callout-cta text-center">
+  <h3 class="text-xl font-bold text-white mb-2">Need an Expert Development Team?</h3>
+  <p class="text-sm text-white/80 mb-4">Partner with NEFFTO IT Solution for custom full-stack web and mobile applications.</p>
+  <a href="/contact" class="cta-btn">Book a Free Consultation &rarr;</a>
+</div>\n`;
+    } else {
+      calloutHtml = `\n<div class="callout-box callout-info">
+  <strong>📌 Important Note:</strong> Make sure all internal links point to canonical URL structures to preserve search engine authority.
+</div>\n`;
+    }
+    insertFormatting(calloutHtml);
+    showToast('Callout block inserted');
+  };
+
+  // Insert Metrics Grid
+  const handleInsertMetrics = () => {
+    const metricsHtml = `\n<div class="metrics-grid">
+  <div class="metric-card">
+    <div class="text-3xl font-black text-[#5482b4] mb-1">+240%</div>
+    <div class="text-xs uppercase tracking-wider text-white/60">Revenue Growth</div>
+  </div>
+  <div class="metric-card">
+    <div class="text-3xl font-black text-emerald-400 mb-1">1.1s</div>
+    <div class="text-xs uppercase tracking-wider text-white/60">Average Load Time</div>
+  </div>
+  <div class="metric-card">
+    <div class="text-3xl font-black text-cyan-400 mb-1">99+</div>
+    <div class="text-xs uppercase tracking-wider text-white/60">Core Web Vitals</div>
+  </div>
+</div>\n`;
+    insertFormatting(metricsHtml);
+    showToast('Metrics KPI grid inserted');
+  };
+
   // Copy slug permalink
   const copyPermalink = () => {
     const fullUrl = `${WEBSITE_BASE}/blogs/${slug || slugify(title)}`;
@@ -464,41 +652,53 @@ const BlogStudio = () => {
             </div>
           </div>
 
-          {/* Center: View Switcher (Desktop) */}
-          <div className="hidden md:flex items-center bg-[#042558]/50 border border-white/10 p-1 rounded-xl">
+          {/* Center: View Switcher & Templates (Desktop) */}
+          <div className="hidden md:flex items-center gap-2.5">
             <button
-              onClick={() => setViewMode('edit')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                viewMode === 'edit'
-                  ? 'bg-[#5482b4] text-white shadow'
-                  : 'text-white/60 hover:text-white'
-              }`}
+              type="button"
+              onClick={() => setShowTemplateModal(true)}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-bold transition shadow-sm cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              title="Browse and load 5 professional ready-made blog templates"
             >
-              <Edit3 className="w-3.5 h-3.5" />
-              <span>Editor</span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>⚡ Templates (5)</span>
             </button>
-            <button
-              onClick={() => setViewMode('split')}
-              className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                viewMode === 'split'
-                  ? 'bg-[#5482b4] text-white shadow'
-                  : 'text-white/60 hover:text-white'
-              }`}
-            >
-              <Columns className="w-3.5 h-3.5" />
-              <span>Split View</span>
-            </button>
-            <button
-              onClick={() => setViewMode('preview')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                viewMode === 'preview'
-                  ? 'bg-[#5482b4] text-white shadow'
-                  : 'text-white/60 hover:text-white'
-              }`}
-            >
-              <Eye className="w-3.5 h-3.5" />
-              <span>Full Page Simulation</span>
-            </button>
+
+            <div className="flex items-center bg-[#042558]/50 border border-white/10 p-1 rounded-xl">
+              <button
+                onClick={() => setViewMode('edit')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  viewMode === 'edit'
+                    ? 'bg-[#5482b4] text-white shadow'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Editor</span>
+              </button>
+              <button
+                onClick={() => setViewMode('split')}
+                className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  viewMode === 'split'
+                    ? 'bg-[#5482b4] text-white shadow'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <Columns className="w-3.5 h-3.5" />
+                <span>Split View</span>
+              </button>
+              <button
+                onClick={() => setViewMode('preview')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  viewMode === 'preview'
+                    ? 'bg-[#5482b4] text-white shadow'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Full Page Simulation</span>
+              </button>
+            </div>
           </div>
 
           {/* Right: Actions */}
@@ -531,6 +731,13 @@ const BlogStudio = () => {
 
         {/* Mobile Tab Switcher */}
         <div className="flex md:hidden items-center justify-center gap-2 mt-3 pt-3 border-t border-white/10">
+          <button
+            onClick={() => setShowTemplateModal(true)}
+            className="py-1.5 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1 border border-amber-500/40 bg-amber-500/10 text-amber-300"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Templates</span>
+          </button>
           <button
             onClick={() => setMobileTab('editor')}
             className={`flex-1 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 ${
@@ -604,12 +811,23 @@ const BlogStudio = () => {
 
               <div
                 className="blog-content prose prose-invert max-w-none text-white/80 space-y-5 leading-relaxed text-base sm:text-lg
-                  [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-white [&>h2]:mt-8 [&>h2]:mb-3 [&>h2]:border-b [&>h2]:border-white/10 [&>h2]:pb-2
+                  [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-white [&>h2]:mt-10 [&>h2]:mb-4 [&>h2]:border-b [&>h2]:border-white/10 [&>h2]:pb-2
                   [&>h3]:text-xl [&>h3]:font-bold [&>h3]:text-white [&>h3]:mt-6
                   [&>p]:my-4
                   [&>ul]:list-disc [&>ul]:pl-6 [&>ul]:space-y-2
                   [&>ol]:list-decimal [&>ol]:pl-6 [&>ol]:space-y-2
-                  [&>blockquote]:border-l-4 [&>blockquote]:border-[#5482b4] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-[#c3e9fe] [&>blockquote]:bg-[#042558]/40 [&>blockquote]:py-2 [&>blockquote]:rounded-r-lg"
+                  [&>blockquote]:border-l-4 [&>blockquote]:border-[#5482b4] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-[#c3e9fe] [&>blockquote]:bg-[#042558]/40 [&>blockquote]:py-2 [&>blockquote]:rounded-r-lg
+                  [&_a]:text-cyan-400 [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-cyan-300
+                  [&_table]:w-full [&_table]:my-6 [&_table]:border-collapse [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:border [&_table]:border-white/10
+                  [&_th]:bg-[#042558]/80 [&_th]:p-3.5 [&_th]:text-left [&_th]:text-xs [&_th]:font-bold [&_th]:text-cyan-300 [&_th]:border-b [&_th]:border-white/10
+                  [&_td]:p-3 [&_td]:text-xs [&_td]:sm:text-sm [&_td]:border-b [&_td]:border-white/5 [&_td]:bg-[#020e24]/40
+                  [&_.callout-box]:p-4 [&_.callout-box]:my-6 [&_.callout-box]:rounded-2xl [&_.callout-box]:border
+                  [&_.callout-info]:bg-[#042558]/40 [&_.callout-info]:border-[#5482b4]/40 [&_.callout-info]:text-[#c3e9fe]
+                  [&_.callout-tip]:bg-amber-500/10 [&_.callout-tip]:border-amber-500/30 [&_.callout-tip]:text-amber-200
+                  [&_.callout-cta]:bg-gradient-to-br [&_.callout-cta]:from-[#042558] [&_.callout-cta]:to-[#020e24] [&_.callout-cta]:border-[#5482b4]/50
+                  [&_.cta-btn]:inline-block [&_.cta-btn]:px-5 [&_.cta-btn]:py-2.5 [&_.cta-btn]:my-2 [&_.cta-btn]:rounded-xl [&_.cta-btn]:bg-[#5482b4] [&_.cta-btn]:text-white [&_.cta-btn]:font-bold [&_.cta-btn]:no-underline hover:[&_.cta-btn]:bg-[#426a97]
+                  [&_.metrics-grid]:grid [&_.metrics-grid]:grid-cols-1 [&_.metrics-grid]:sm:grid-cols-3 [&_.metrics-grid]:gap-3 [&_.metrics-grid]:my-6
+                  [&_.metric-card]:p-4 [&_.metric-card]:rounded-xl [&_.metric-card]:bg-[#042558]/40 [&_.metric-card]:border [&_.metric-card]:border-white/10 [&_.metric-card]:text-center"
                 dangerouslySetInnerHTML={{
                   __html:
                     content || '<p className="text-white/40 italic">Start writing in the editor to see your article here...</p>',
@@ -819,32 +1037,79 @@ const BlogStudio = () => {
 
                   <div className="h-4 w-px bg-white/15" />
 
-                  <div className="flex items-center gap-0.5">
+                  <div className="flex items-center gap-1">
                     <button
                       type="button"
-                      onClick={() => {
-                        const url = prompt('Enter link URL (e.g. https://...):');
-                        if (url) {
-                          insertFormatting(`<a href="${url}" target="_blank">`, '</a>');
-                        }
-                      }}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition"
-                      title="Insert Link"
+                      onClick={handleOpenLinkModal}
+                      className="p-1.5 px-2.5 rounded-lg bg-[#5482b4]/20 hover:bg-[#5482b4]/40 text-[#c3e9fe] hover:text-white transition flex items-center gap-1.5 text-xs font-semibold border border-[#5482b4]/40 cursor-pointer"
+                      title="Insert Hyperlink, Internal Service Link, or In-Page Anchor (#id)"
                     >
-                      <Link2 className="w-4 h-4" />
+                      <Link2 className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Link / Anchor</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => {
                         const url = prompt('Enter image URL:');
                         if (url) {
-                          insertFormatting(`<img src="${url}" alt="`, '" />');
+                          insertFormatting(`<img src="${url}" alt="`, '" class="rounded-xl my-4 border border-white/10 max-h-96 w-full object-cover" />');
                         }
                       }}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition"
+                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition cursor-pointer"
                       title="Insert Image URL"
                     >
                       <ImageIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="h-4 w-px bg-white/15" />
+
+                  {/* Pro Content Components */}
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={handleInsertTable}
+                      className="p-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition flex items-center gap-1 text-xs font-medium cursor-pointer"
+                      title="Insert Comparison Table"
+                    >
+                      <TableIcon className="w-3.5 h-3.5 text-cyan-400" />
+                      <span className="hidden sm:inline">Table</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleInsertCallout('tip')}
+                      className="p-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition flex items-center gap-1 text-xs font-medium cursor-pointer"
+                      title="Insert Pro Tip / Callout Box"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span className="hidden sm:inline">Callout</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleInsertMetrics}
+                      className="p-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition flex items-center gap-1 text-xs font-medium cursor-pointer"
+                      title="Insert 3-Column Metrics Grid"
+                    >
+                      <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="hidden sm:inline">KPI Metrics</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const idVal = prompt('Enter section Anchor ID (e.g. key-features):');
+                        if (idVal) {
+                          const clean = idVal.trim().replace(/^#/, '').toLowerCase().replace(/\s+/g, '-');
+                          insertFormatting(`<h2 id="${clean}">`, `</h2>`);
+                        }
+                      }}
+                      className="p-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition flex items-center gap-1 text-xs font-medium cursor-pointer"
+                      title="Set an anchor ID destination (<h2 id='...'>)"
+                    >
+                      <Bookmark className="w-3.5 h-3.5 text-purple-400" />
+                      <span className="hidden sm:inline">#Target</span>
                     </button>
                   </div>
                 </div>
@@ -885,10 +1150,21 @@ const BlogStudio = () => {
 
                 <div
                   className="prose prose-invert max-w-none text-white/80 space-y-4 text-sm leading-relaxed
-                    [&>h2]:text-xl [&>h2]:font-bold [&>h2]:text-white [&>h2]:mt-5 [&>h2]:border-b [&>h2]:border-white/10 [&>h2]:pb-1
+                    [&>h2]:text-xl [&>h2]:font-bold [&>h2]:text-white [&>h2]:mt-6 [&>h2]:border-b [&>h2]:border-white/10 [&>h2]:pb-1
                     [&>h3]:text-lg [&>h3]:font-bold [&>h3]:text-white
-                    [&>blockquote]:border-l-4 [&>blockquote]:border-[#5482b4] [&>blockquote]:pl-3 [&>blockquote]:text-[#c3e9fe]
-                    [&>code]:bg-white/10 [&>code]:text-[#c3e9fe] [&>code]:px-1 [&>code]:rounded"
+                    [&>blockquote]:border-l-4 [&>blockquote]:border-[#5482b4] [&>blockquote]:pl-3 [&>blockquote]:text-[#c3e9fe] [&>blockquote]:bg-[#042558]/30 [&>blockquote]:py-1.5 [&>blockquote]:rounded-r
+                    [&>code]:bg-white/10 [&>code]:text-[#c3e9fe] [&>code]:px-1 [&>code]:rounded
+                    [&_a]:text-cyan-400 [&_a]:underline hover:[&_a]:text-cyan-300
+                    [&_table]:w-full [&_table]:my-4 [&_table]:border-collapse [&_table]:rounded-lg [&_table]:overflow-hidden [&_table]:border [&_table]:border-white/10
+                    [&_th]:bg-[#042558]/80 [&_th]:p-2.5 [&_th]:text-left [&_th]:text-xs [&_th]:font-bold [&_th]:text-cyan-300 [&_th]:border-b [&_th]:border-white/10
+                    [&_td]:p-2.5 [&_td]:text-xs [&_td]:border-b [&_td]:border-white/5 [&_td]:bg-[#020e24]/40
+                    [&_.callout-box]:p-3 [&_.callout-box]:my-4 [&_.callout-box]:rounded-xl [&_.callout-box]:border
+                    [&_.callout-info]:bg-[#042558]/40 [&_.callout-info]:border-[#5482b4]/40 [&_.callout-info]:text-[#c3e9fe]
+                    [&_.callout-tip]:bg-amber-500/10 [&_.callout-tip]:border-amber-500/30 [&_.callout-tip]:text-amber-200
+                    [&_.callout-cta]:bg-gradient-to-br [&_.callout-cta]:from-[#042558] [&_.callout-cta]:to-[#020e24] [&_.callout-cta]:border-[#5482b4]/50
+                    [&_.cta-btn]:inline-block [&_.cta-btn]:px-4 [&_.cta-btn]:py-2 [&_.cta-btn]:my-2 [&_.cta-btn]:rounded-lg [&_.cta-btn]:bg-[#5482b4] [&_.cta-btn]:text-white [&_.cta-btn]:font-bold [&_.cta-btn]:no-underline hover:[&_.cta-btn]:bg-[#426a97]
+                    [&_.metrics-grid]:grid [&_.metrics-grid]:grid-cols-1 [&_.metrics-grid]:sm:grid-cols-3 [&_.metrics-grid]:gap-2 [&_.metrics-grid]:my-4
+                    [&_.metric-card]:p-3 [&_.metric-card]:rounded-lg [&_.metric-card]:bg-[#042558]/40 [&_.metric-card]:border [&_.metric-card]:border-white/10 [&_.metric-card]:text-center"
                   dangerouslySetInnerHTML={{
                     __html:
                       content || '<p className="text-white/40 italic">Type on the left to see live rendering...</p>',
@@ -1295,6 +1571,406 @@ const BlogStudio = () => {
           </div>
         )}
       </main>
+
+      {/* ================= Template Gallery Modal ================= */}
+      {showTemplateModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#031538] border border-white/15 rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/5">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-amber-500/20 text-amber-300">
+                    <Sparkles className="w-5 h-5" />
+                  </span>
+                  <h3 className="text-xl font-black text-white">5 Ready-to-Use Blog Templates</h3>
+                </div>
+                <p className="text-xs text-white/60 mt-1">
+                  Click any production-grade blueprint below to instantly populate title, meta, tags, and rich HTML with tables and anchor jumps.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTemplateModal(false);
+                  setPreviewTemplate(null);
+                }}
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {blogTemplates.map((tmpl) => (
+                  <div
+                    key={tmpl.id}
+                    className="bg-[#020e24]/70 border border-white/10 hover:border-[#5482b4]/60 rounded-2xl p-5 transition-all flex flex-col justify-between group hover:shadow-xl hover:shadow-[#5482b4]/10"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#5482b4]/20 text-cyan-300 border border-[#5482b4]/30">
+                          {tmpl.category}
+                        </span>
+                        <span className="text-[11px] text-amber-300 font-semibold bg-amber-500/10 px-2 py-0.5 rounded-md">
+                          {tmpl.badge}
+                        </span>
+                      </div>
+
+                      <h4 className="text-base font-bold text-white group-hover:text-cyan-300 transition line-clamp-2">
+                        {tmpl.title}
+                      </h4>
+
+                      <p className="text-xs text-white/60 line-clamp-3 leading-relaxed">
+                        {tmpl.excerpt}
+                      </p>
+
+                      <div className="flex items-center gap-2 flex-wrap pt-1">
+                        {tmpl.tags.slice(0, 3).map((tg) => (
+                          <span key={tg} className="text-[10px] bg-white/5 text-white/50 px-2 py-0.5 rounded">
+                            #{tg}
+                          </span>
+                        ))}
+                        <span className="text-[10px] text-white/40 ml-auto">
+                          ⏱ {tmpl.readTime}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 mt-4 border-t border-white/10 flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewTemplate(previewTemplate?.id === tmpl.id ? null : tmpl)}
+                        className="text-xs font-semibold text-white/70 hover:text-white transition py-1.5 px-3 rounded-lg hover:bg-white/10"
+                      >
+                        {previewTemplate?.id === tmpl.id ? 'Close Outline' : 'View Outline'}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleApplyTemplate(tmpl)}
+                        className="text-xs font-bold text-white bg-gradient-to-r from-[#5482b4] to-[#042558] hover:opacity-90 px-4 py-2 rounded-xl transition shadow-md flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Load Template</span>
+                      </button>
+                    </div>
+
+                    {/* Quick Outline Preview */}
+                    {previewTemplate?.id === tmpl.id && (
+                      <div className="mt-4 p-3.5 rounded-xl bg-black/40 border border-white/10 text-xs text-white/80 space-y-2 animate-in fade-in duration-150">
+                        <div className="font-bold text-amber-300 flex items-center gap-1">
+                          <Bookmark className="w-3.5 h-3.5" /> Embedded Components & Anchors:
+                        </div>
+                        <ul className="list-disc pl-4 space-y-1 text-white/70">
+                          <li>Interactive In-Page Navigation / Table of Contents</li>
+                          <li>Styled Comparison Table with Technical Specs</li>
+                          <li>Callout Tip & Attention Highlight Boxes</li>
+                          <li>Internal Anchors connecting to Neffto Service Pages</li>
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-white/5 border-t border-white/10 flex items-center justify-between text-xs text-white/60">
+              <span>All 5 templates include responsive tables, callout blocks, and verified anchor tags.</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTemplateModal(false);
+                  setPreviewTemplate(null);
+                }}
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold transition cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= Anchor Tag & Hyperlink Manager Modal ================= */}
+      {showLinkModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#031538] border border-[#5482b4]/40 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-[#5482b4]/20 text-cyan-300 border border-[#5482b4]/30">
+                  <Link2 className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Anchor Tag & Link Manager</h3>
+                  <p className="text-xs text-white/60">
+                    Insert exact anchor text, Neffto internal service links, or in-page jump targets.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLinkModal(false)}
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Link Mode Tabs */}
+            <div className="grid grid-cols-3 gap-1 bg-[#020e24] p-1 rounded-xl border border-white/10 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setLinkTab('internal')}
+                className={`py-2 rounded-lg transition ${
+                  linkTab === 'internal'
+                    ? 'bg-[#5482b4] text-white shadow'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                🌐 Neffto Services
+              </button>
+              <button
+                type="button"
+                onClick={() => setLinkTab('custom')}
+                className={`py-2 rounded-lg transition ${
+                  linkTab === 'custom'
+                    ? 'bg-[#5482b4] text-white shadow'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                🔗 Custom URL
+              </button>
+              <button
+                type="button"
+                onClick={() => setLinkTab('anchor')}
+                className={`py-2 rounded-lg transition ${
+                  linkTab === 'anchor'
+                    ? 'bg-[#5482b4] text-white shadow'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                ⚓ In-Page Anchor (#)
+              </button>
+            </div>
+
+            {/* Tab 1: Internal Neffto Services */}
+            {linkTab === 'internal' && (
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/80">
+                    Anchor Text (Phrase wrapped in link)
+                  </label>
+                  <input
+                    type="text"
+                    value={anchorText}
+                    onChange={(e) => setAnchorText(e.target.value)}
+                    placeholder="e.g. dedicated SEO services or Shopify custom theme"
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#020e24] border border-white/10 text-sm text-white focus:outline-none focus:border-[#5482b4]"
+                  />
+                  <span className="text-[11px] text-white/40">
+                    Selected text from editor automatically populates this field.
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/80">
+                    Select Target Neffto Service:
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                    {quickInternalLinks.map((item) => {
+                      const isSelected = targetUrl === item.url;
+                      return (
+                        <button
+                          key={item.url}
+                          type="button"
+                          onClick={() => {
+                            setTargetUrl(item.url);
+                            if (!anchorText) setAnchorText(item.name);
+                          }}
+                          className={`p-2.5 rounded-xl border text-left transition flex items-start gap-2 ${
+                            isSelected
+                              ? 'border-cyan-400 bg-cyan-500/15 text-white'
+                              : 'border-white/10 bg-[#020e24]/60 hover:border-white/30 text-white/70'
+                          }`}
+                        >
+                          <span className="text-base shrink-0">{item.icon}</span>
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold truncate text-white">{item.name}</div>
+                            <div className="text-[10px] text-white/50 truncate font-mono">{item.url}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-white/10 flex items-center justify-between flex-wrap gap-3 text-xs">
+                  <label className="flex items-center gap-2 cursor-pointer text-white/80 hover:text-white">
+                    <input
+                      type="checkbox"
+                      checked={openInNewTab}
+                      onChange={(e) => setOpenInNewTab(e.target.checked)}
+                      className="rounded bg-[#020e24] border-white/20 text-[#5482b4] focus:ring-0"
+                    />
+                    <span>Open in new tab</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-white/80 hover:text-white">
+                    <input
+                      type="checkbox"
+                      checked={isCtaButton}
+                      onChange={(e) => setIsCtaButton(e.target.checked)}
+                      className="rounded bg-[#020e24] border-white/20 text-[#5482b4] focus:ring-0"
+                    />
+                    <span>Style as CTA Button</span>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 2: Custom URL */}
+            {linkTab === 'custom' && (
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/80">
+                    Anchor Text
+                  </label>
+                  <input
+                    type="text"
+                    value={anchorText}
+                    onChange={(e) => setAnchorText(e.target.value)}
+                    placeholder="e.g. Visit Documentation or Read More"
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#020e24] border border-white/10 text-sm text-white focus:outline-none focus:border-[#5482b4]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/80">
+                    Destination URL
+                  </label>
+                  <input
+                    type="url"
+                    value={targetUrl}
+                    onChange={(e) => setTargetUrl(e.target.value)}
+                    placeholder="https://example.com or /contact"
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#020e24] border border-white/10 text-sm text-white focus:outline-none focus:border-[#5482b4] font-mono"
+                  />
+                </div>
+
+                <div className="pt-2 border-t border-white/10 flex items-center justify-between flex-wrap gap-3 text-xs">
+                  <label className="flex items-center gap-2 cursor-pointer text-white/80 hover:text-white">
+                    <input
+                      type="checkbox"
+                      checked={openInNewTab}
+                      onChange={(e) => setOpenInNewTab(e.target.checked)}
+                      className="rounded bg-[#020e24] border-white/20 text-[#5482b4] focus:ring-0"
+                    />
+                    <span>Open in new tab</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-white/80 hover:text-white">
+                    <input
+                      type="checkbox"
+                      checked={isCtaButton}
+                      onChange={(e) => setIsCtaButton(e.target.checked)}
+                      className="rounded bg-[#020e24] border-white/20 text-[#5482b4] focus:ring-0"
+                    />
+                    <span>Style as CTA Button</span>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 3: In-Page Anchor (#hash) */}
+            {linkTab === 'anchor' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-2 bg-[#020e24] p-1 rounded-xl border border-white/10 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setAnchorTargetType('jump')}
+                    className={`py-1.5 rounded-lg font-semibold transition ${
+                      anchorTargetType === 'jump'
+                        ? 'bg-[#5482b4] text-white shadow'
+                        : 'text-white/60 hover:text-white'
+                    }`}
+                  >
+                    1. Jump Link (&lt;a href="#id"&gt;)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAnchorTargetType('target')}
+                    className={`py-1.5 rounded-lg font-semibold transition ${
+                      anchorTargetType === 'target'
+                        ? 'bg-[#5482b4] text-white shadow'
+                        : 'text-white/60 hover:text-white'
+                    }`}
+                  >
+                    2. Target Section (&lt;h2 id="id"&gt;)
+                  </button>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/80">
+                    Anchor ID (Slug without spaces)
+                  </label>
+                  <div className="flex items-center bg-[#020e24] rounded-xl border border-white/10 px-3 py-2 text-xs font-mono">
+                    <span className="text-cyan-400 select-none mr-1 font-bold">#</span>
+                    <input
+                      type="text"
+                      value={inPageAnchorId}
+                      onChange={(e) => setInPageAnchorId(e.target.value)}
+                      placeholder="e.g. database-scaling or shopify-setup"
+                      className="bg-transparent text-white focus:outline-none flex-1 font-mono"
+                    />
+                  </div>
+                  <span className="text-[10px] text-white/40">
+                    Example: `#key-features` will jump smoothly to that section on the page.
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/80">
+                    {anchorTargetType === 'jump' ? 'Anchor Text for the Link' : 'Section Heading Text'}
+                  </label>
+                  <input
+                    type="text"
+                    value={anchorText}
+                    onChange={(e) => setAnchorText(e.target.value)}
+                    placeholder={anchorTargetType === 'jump' ? 'Jump to Key Features' : 'Key Architecture Features'}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#020e24] border border-white/10 text-sm text-white focus:outline-none focus:border-[#5482b4]"
+                  />
+                </div>
+
+                <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-xs text-cyan-200">
+                  💡 <strong>How Anchor Jumps Work:</strong> Place a <em>Target Section</em> at your heading (`&lt;h2 id="xyz"&gt;`), then create a <em>Jump Link</em> at the top (`&lt;a href="#xyz"&gt;`) so readers can jump straight to it.
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowLinkModal(false)}
+                className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white/80 text-xs font-semibold transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleInsertAnchorLink}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#5482b4] to-[#042558] hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-[#5482b4]/25 transition cursor-pointer flex items-center gap-1.5"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Insert Anchor Tag</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
