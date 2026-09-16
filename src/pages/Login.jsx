@@ -104,9 +104,6 @@ const Login = () => {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              <div className="text-[11px] text-white/40 flex justify-between pt-1">
-                <span>Default key: <code className="text-[#c3e9fe]">neffto@admin2026</code></span>
-              </div>
             </div>
 
             <button
