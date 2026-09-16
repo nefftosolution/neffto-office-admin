@@ -329,4 +329,165 @@ export class OrderService {
   <a href="/contact" class="cta-btn">Book Your Free AI Strategy Session &rarr;</a>
 </div>`,
   },
+  {
+    id: 'custom-tailwind-landing',
+    name: 'Full Custom Designed Page (Tailwind & CSS)',
+    badge: '🚀 Custom Page Layout',
+    category: 'Software Architecture',
+    layoutMode: 'custom-page',
+    tags: ['Tailwind CSS', 'Web Design', 'Custom Page', 'Full Stack', 'UI/UX'],
+    readTime: '4 min read',
+    coverImage: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1200&auto=format&fit=crop',
+    title: 'Next-Generation Web Platforms: Full Custom Designed Architecture Showcase',
+    excerpt: 'A complete custom-designed page demonstration built with pure Tailwind CSS classes, custom CSS keyframe animations, and full-width responsive grids.',
+    customCss: `/* Custom CSS Glow & Keyframe Animations for this Page */
+.hero-glow-card {
+  background: radial-gradient(circle at 50% 0%, rgba(84, 130, 180, 0.25), transparent 70%), #041b3d;
+  box-shadow: 0 20px 50px rgba(4, 37, 88, 0.5);
+  border: 1px solid rgba(195, 233, 254, 0.15);
+}
+
+.neon-border-box {
+  position: relative;
+  border-radius: 1.5rem;
+  background: rgba(4, 37, 88, 0.4);
+  border: 1px solid rgba(84, 130, 180, 0.3);
+  backdrop-filter: blur(12px);
+}
+
+.neon-border-box:hover {
+  border-color: rgba(195, 233, 254, 0.7);
+  box-shadow: 0 10px 30px rgba(84, 130, 180, 0.25);
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.pulse-circle {
+  animation: pulseGlow 4s infinite ease-in-out;
+}`,
+    content: `<!-- ================= FULL CUSTOM PAGE HERO SECTION ================= -->
+<div class="relative w-full rounded-3xl overflow-hidden hero-glow-card p-8 sm:p-14 my-4 text-center">
+  <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-bold uppercase tracking-widest mb-6">
+    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+    <span>Custom Designed Page Showcase</span>
+  </div>
+
+  <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight max-w-4xl mx-auto mb-6">
+    Engineered for <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400">Extreme Scale</span> &amp; Zero Latency
+  </h1>
+
+  <p class="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto mb-8 leading-relaxed font-sans">
+    This article is rendered as a <strong>Full Custom Designed Page</strong>. Every section, responsive grid, and gradient button is styled with custom Tailwind CSS classes and custom stylesheet rules.
+  </p>
+
+  <div class="flex items-center justify-center gap-4 flex-wrap">
+    <a href="/contact" class="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-[#5482b4] to-[#042558] hover:opacity-90 text-white font-bold text-sm shadow-xl shadow-cyan-500/20 transition-all cursor-pointer border border-cyan-400/40">
+      Book Architecture Session &rarr;
+    </a>
+    <a href="#features" class="px-7 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white/90 font-bold text-sm border border-white/10 transition-all cursor-pointer">
+      Explore Core Pillars ↓
+    </a>
+  </div>
+</div>
+
+<!-- ================= 3-COLUMN TAILWIND CARDS SECTION ================= -->
+<div id="features" class="my-14 space-y-6">
+  <div class="text-center max-w-2xl mx-auto mb-10">
+    <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-2">Core Engineering Capabilities</h2>
+    <p class="text-sm text-white/60">Built with modern headless APIs, edge compute, and high-converting UI design.</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Card 1 -->
+    <div class="neon-border-box p-7 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between">
+      <div>
+        <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-2xl mb-5 border border-cyan-500/30">
+          ⚡
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">Sub-100ms Microservices</h3>
+        <p class="text-sm text-white/65 leading-relaxed">
+          Ultra-responsive REST and GraphQL endpoints backed by distributed Redis clusters and optimized database indexing.
+        </p>
+      </div>
+      <div class="pt-6 mt-6 border-t border-white/10">
+        <a href="/services/web-development" class="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+          Explore Web Development &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="neon-border-box p-7 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between">
+      <div>
+        <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-2xl mb-5 border border-indigo-500/30">
+          📱
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">Omnichannel Mobile Sync</h3>
+        <p class="text-sm text-white/65 leading-relaxed">
+          Cross-platform React Native and Flutter codebases with instant push synchronization, offline storage, and native biometric security.
+        </p>
+      </div>
+      <div class="pt-6 mt-6 border-t border-white/10">
+        <a href="/services/app-development" class="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+          Explore App Development &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="neon-border-box p-7 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between">
+      <div>
+        <div class="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-300 flex items-center justify-center text-2xl mb-5 border border-purple-500/30">
+          🔍
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">First-Page Organic Growth</h3>
+        <p class="text-sm text-white/65 leading-relaxed">
+          Engineered from ground zero to satisfy Google Core Web Vitals, dynamic OpenGraph schemas, and <a href="/services/seo">dedicated SEO services</a>.
+        </p>
+      </div>
+      <div class="pt-6 mt-6 border-t border-white/10">
+        <a href="/services/seo" class="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+          Explore Technical SEO &rarr;
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= KPI METRIC BANNER ================= -->
+<div class="my-14 p-8 rounded-3xl bg-[#042558]/50 border border-white/10">
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 text-center">
+    <div class="p-4">
+      <div class="text-4xl font-black text-cyan-400 mb-1">99.99%</div>
+      <div class="text-xs uppercase tracking-wider text-white/60">Uptime SLA</div>
+    </div>
+    <div class="p-4">
+      <div class="text-4xl font-black text-emerald-400 mb-1">&lt; 45ms</div>
+      <div class="text-xs uppercase tracking-wider text-white/60">Global Edge Latency</div>
+    </div>
+    <div class="p-4">
+      <div class="text-4xl font-black text-amber-300 mb-1">10M+</div>
+      <div class="text-xs uppercase tracking-wider text-white/60">Daily API Queries</div>
+    </div>
+    <div class="p-4">
+      <div class="text-4xl font-black text-purple-400 mb-1">100 / 100</div>
+      <div class="text-xs uppercase tracking-wider text-white/60">Google PageSpeed</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= BOTTOM CTA ================= -->
+<div class="my-14 p-10 rounded-3xl bg-gradient-to-r from-[#042558] via-[#082d6b] to-[#020e24] border border-[#5482b4]/40 text-center space-y-4">
+  <h3 class="text-2xl sm:text-3xl font-bold text-white">Ready to Deploy Your Own Custom Platform?</h3>
+  <p class="text-sm sm:text-base text-white/70 max-w-xl mx-auto">
+    Partner with NEFFTO IT Solution for custom enterprise software, full-stack web applications, and intelligent cloud automations.
+  </p>
+  <div class="pt-2">
+    <a href="/contact" class="cta-btn text-base px-8 py-3.5">Get in Touch with Our Architects &rarr;</a>
+  </div>
+</div>`,
+  },
 ];

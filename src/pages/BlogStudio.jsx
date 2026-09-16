@@ -105,6 +105,9 @@ const BlogStudio = () => {
   const [tagInput, setTagInput] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [content, setContent] = useState('');
+  const [customCss, setCustomCss] = useState('');
+  const [layoutMode, setLayoutMode] = useState('standard'); // 'standard' or 'custom-page'
+  const [editorTab, setEditorTab] = useState('html'); // 'html' or 'css'
   const [status, setStatus] = useState('published');
   const [featured, setFeatured] = useState(false);
   const [wordStats, setWordStats] = useState({ words: 0, readTime: '1 min read' });
@@ -180,6 +183,8 @@ const BlogStudio = () => {
               setTags(found.tags || []);
               setCoverImage(found.coverImage || '');
               setContent(found.content || '');
+              setCustomCss(found.customCss || '');
+              setLayoutMode(found.layoutMode || 'standard');
               setStatus(found.status || 'published');
               setFeatured(Boolean(found.featured));
               if (found.author) {
@@ -377,6 +382,8 @@ const BlogStudio = () => {
     setTags(tmpl.tags);
     setCoverImage(tmpl.coverImage);
     setContent(tmpl.content);
+    setCustomCss(tmpl.customCss || '');
+    setLayoutMode(tmpl.layoutMode || 'standard');
     setMetaTitle(tmpl.title);
     setMetaDescription(tmpl.excerpt);
     setKeywords(tmpl.tags.join(', '));
@@ -555,6 +562,8 @@ const BlogStudio = () => {
         coverImage ||
         'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?q=80&w=1200&auto=format&fit=crop',
       content,
+      customCss: customCss.trim(),
+      layoutMode,
       status: publishStatus,
       featured,
       readTime: wordStats.readTime,
@@ -661,7 +670,7 @@ const BlogStudio = () => {
               title="Browse and load 5 professional ready-made blog templates"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>⚡ Templates (5)</span>
+              <span>⚡ Templates ({blogTemplates.length})</span>
             </button>
 
             <div className="flex items-center bg-[#042558]/50 border border-white/10 p-1 rounded-xl">
@@ -767,73 +776,102 @@ const BlogStudio = () => {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6">
         {/* Full Page Preview Mode */}
         {viewMode === 'preview' ? (
-          <div className="bg-[#020e24] border border-white/10 rounded-3xl p-6 sm:p-12 shadow-2xl space-y-8">
+          <div className="bg-[#020e24] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
+            {/* Live Injected Custom CSS */}
+            {customCss && <style dangerouslySetInnerHTML={{ __html: customCss }} />}
+
             <div className="flex items-center justify-between pb-4 border-b border-white/10 text-xs">
               <span className="uppercase tracking-widest text-[#5482b4] font-bold flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4" /> Live Website Simulation
+                <Sparkles className="w-4 h-4" />
+                {layoutMode === 'custom-page'
+                  ? '🚀 Full Custom Designed Page Simulation'
+                  : 'Live Editorial Post Simulation'}
               </span>
               <button
                 onClick={() => setViewMode('edit')}
-                className="text-white/70 hover:text-white flex items-center gap-1"
+                className="text-white/70 hover:text-white flex items-center gap-1 cursor-pointer"
               >
                 <Edit3 className="w-3.5 h-3.5" /> Back to Editor
               </button>
             </div>
 
-            <div className="max-w-4xl mx-auto space-y-6">
-              <div className="flex items-center gap-3">
-                <span className="px-3.5 py-1 rounded-lg text-xs font-semibold bg-[#5482b4] text-white shadow">
-                  {isCustomCat ? customCategory : category}
-                </span>
-                <span className="text-xs text-white/50 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-[#5482b4]" />
-                  {wordStats.readTime}
-                </span>
-              </div>
-
-              <h1 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight font-heading">
-                {title || 'Untitled Article'}
-              </h1>
-
-              <p className="text-base sm:text-lg text-white/70 leading-relaxed">
-                {excerpt || 'Article summary excerpt will be displayed here.'}
-              </p>
-
-              {coverImage && (
-                <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl max-h-[460px]">
-                  <img
-                    src={coverImage}
-                    alt={title}
-                    className="w-full h-full object-cover"
-                  />
+            {layoutMode === 'custom-page' ? (
+              /* Unconstrained Custom Page Canvas */
+              <div className="w-full space-y-6">
+                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-purple-900/40 via-indigo-900/40 to-cyan-900/30 border border-purple-500/30 flex items-center justify-between text-xs text-purple-200 flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1 rounded-md bg-purple-500/20 text-purple-300">🚀</span>
+                    <span className="font-bold">Full Custom Page Mode:</span>
+                    <span className="text-white/70">Custom Tailwind layout, full-width components, and custom CSS are active.</span>
+                  </div>
+                  <span className="text-[10px] text-white/40 font-mono">/blogs/{slug || 'custom-page'}</span>
                 </div>
-              )}
 
-              <div
-                className="blog-content prose prose-invert max-w-none text-white/80 space-y-5 leading-relaxed text-base sm:text-lg
-                  [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-white [&>h2]:mt-10 [&>h2]:mb-4 [&>h2]:border-b [&>h2]:border-white/10 [&>h2]:pb-2
-                  [&>h3]:text-xl [&>h3]:font-bold [&>h3]:text-white [&>h3]:mt-6
-                  [&>p]:my-4
-                  [&>ul]:list-disc [&>ul]:pl-6 [&>ul]:space-y-2
-                  [&>ol]:list-decimal [&>ol]:pl-6 [&>ol]:space-y-2
-                  [&>blockquote]:border-l-4 [&>blockquote]:border-[#5482b4] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-[#c3e9fe] [&>blockquote]:bg-[#042558]/40 [&>blockquote]:py-2 [&>blockquote]:rounded-r-lg
-                  [&_a]:text-cyan-400 [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-cyan-300
-                  [&_table]:w-full [&_table]:my-6 [&_table]:border-collapse [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:border [&_table]:border-white/10
-                  [&_th]:bg-[#042558]/80 [&_th]:p-3.5 [&_th]:text-left [&_th]:text-xs [&_th]:font-bold [&_th]:text-cyan-300 [&_th]:border-b [&_th]:border-white/10
-                  [&_td]:p-3 [&_td]:text-xs [&_td]:sm:text-sm [&_td]:border-b [&_td]:border-white/5 [&_td]:bg-[#020e24]/40
-                  [&_.callout-box]:p-4 [&_.callout-box]:my-6 [&_.callout-box]:rounded-2xl [&_.callout-box]:border
-                  [&_.callout-info]:bg-[#042558]/40 [&_.callout-info]:border-[#5482b4]/40 [&_.callout-info]:text-[#c3e9fe]
-                  [&_.callout-tip]:bg-amber-500/10 [&_.callout-tip]:border-amber-500/30 [&_.callout-tip]:text-amber-200
-                  [&_.callout-cta]:bg-gradient-to-br [&_.callout-cta]:from-[#042558] [&_.callout-cta]:to-[#020e24] [&_.callout-cta]:border-[#5482b4]/50
-                  [&_.cta-btn]:inline-block [&_.cta-btn]:px-5 [&_.cta-btn]:py-2.5 [&_.cta-btn]:my-2 [&_.cta-btn]:rounded-xl [&_.cta-btn]:bg-[#5482b4] [&_.cta-btn]:text-white [&_.cta-btn]:font-bold [&_.cta-btn]:no-underline hover:[&_.cta-btn]:bg-[#426a97]
-                  [&_.metrics-grid]:grid [&_.metrics-grid]:grid-cols-1 [&_.metrics-grid]:sm:grid-cols-3 [&_.metrics-grid]:gap-3 [&_.metrics-grid]:my-6
-                  [&_.metric-card]:p-4 [&_.metric-card]:rounded-xl [&_.metric-card]:bg-[#042558]/40 [&_.metric-card]:border [&_.metric-card]:border-white/10 [&_.metric-card]:text-center"
-                dangerouslySetInnerHTML={{
-                  __html:
-                    content || '<p className="text-white/40 italic">Start writing in the editor to see your article here...</p>',
-                }}
-              />
-            </div>
+                <div
+                  className="custom-blog-canvas w-full"
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      content || '<p className="text-white/40 italic">Start writing or paste custom HTML & Tailwind layout in the editor...</p>',
+                  }}
+                />
+              </div>
+            ) : (
+              /* Standard Editorial Post Simulation */
+              <div className="max-w-4xl mx-auto space-y-6">
+                <div className="flex items-center gap-3">
+                  <span className="px-3.5 py-1 rounded-lg text-xs font-semibold bg-[#5482b4] text-white shadow">
+                    {isCustomCat ? customCategory : category}
+                  </span>
+                  <span className="text-xs text-white/50 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-[#5482b4]" />
+                    {wordStats.readTime}
+                  </span>
+                </div>
+
+                <h1 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight font-heading">
+                  {title || 'Untitled Article'}
+                </h1>
+
+                <p className="text-base sm:text-lg text-white/70 leading-relaxed">
+                  {excerpt || 'Article summary excerpt will be displayed here.'}
+                </p>
+
+                {coverImage && (
+                  <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl max-h-[460px]">
+                    <img
+                      src={coverImage}
+                      alt={title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
+                <div
+                  className="blog-content prose prose-invert max-w-none text-white/80 space-y-5 leading-relaxed text-base sm:text-lg
+                    [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-white [&>h2]:mt-10 [&>h2]:mb-4 [&>h2]:border-b [&>h2]:border-white/10 [&>h2]:pb-2
+                    [&>h3]:text-xl [&>h3]:font-bold [&>h3]:text-white [&>h3]:mt-6
+                    [&>p]:my-4
+                    [&>ul]:list-disc [&>ul]:pl-6 [&>ul]:space-y-2
+                    [&>ol]:list-decimal [&>ol]:pl-6 [&>ol]:space-y-2
+                    [&>blockquote]:border-l-4 [&>blockquote]:border-[#5482b4] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-[#c3e9fe] [&>blockquote]:bg-[#042558]/40 [&>blockquote]:py-2 [&>blockquote]:rounded-r-lg
+                    [&_a]:text-cyan-400 [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-cyan-300
+                    [&_table]:w-full [&_table]:my-6 [&_table]:border-collapse [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:border [&_table]:border-white/10
+                    [&_th]:bg-[#042558]/80 [&_th]:p-3.5 [&_th]:text-left [&_th]:text-xs [&_th]:font-bold [&_th]:text-cyan-300 [&_th]:border-b [&_th]:border-white/10
+                    [&_td]:p-3 [&_td]:text-xs [&_td]:sm:text-sm [&_td]:border-b [&_td]:border-white/5 [&_td]:bg-[#020e24]/40
+                    [&_.callout-box]:p-4 [&_.callout-box]:my-6 [&_.callout-box]:rounded-2xl [&_.callout-box]:border
+                    [&_.callout-info]:bg-[#042558]/40 [&_.callout-info]:border-[#5482b4]/40 [&_.callout-info]:text-[#c3e9fe]
+                    [&_.callout-tip]:bg-amber-500/10 [&_.callout-tip]:border-amber-500/30 [&_.callout-tip]:text-amber-200
+                    [&_.callout-cta]:bg-gradient-to-br [&_.callout-cta]:from-[#042558] [&_.callout-cta]:to-[#020e24] [&_.callout-cta]:border-[#5482b4]/50
+                    [&_.cta-btn]:inline-block [&_.cta-btn]:px-5 [&_.cta-btn]:py-2.5 [&_.cta-btn]:my-2 [&_.cta-btn]:rounded-xl [&_.cta-btn]:bg-[#5482b4] [&_.cta-btn]:text-white [&_.cta-btn]:font-bold [&_.cta-btn]:no-underline hover:[&_.cta-btn]:bg-[#426a97]
+                    [&_.metrics-grid]:grid [&_.metrics-grid]:grid-cols-1 [&_.metrics-grid]:sm:grid-cols-3 [&_.metrics-grid]:gap-3 [&_.metrics-grid]:my-6
+                    [&_.metric-card]:p-4 [&_.metric-card]:rounded-xl [&_.metric-card]:bg-[#042558]/40 [&_.metric-card]:border [&_.metric-card]:border-white/10 [&_.metric-card]:text-center"
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      content || '<p className="text-white/40 italic">Start writing in the editor to see your article here...</p>',
+                  }}
+                />
+              </div>
+            )}
           </div>
         ) : (
           /* Responsive Grid (Editor + Sidebar) */
@@ -930,246 +968,353 @@ const BlogStudio = () => {
                 </div>
               </div>
 
-              {/* Rich Content Editor */}
+              {/* Rich Content & CSS Studio */}
               <div className="bg-[#042558]/30 border border-white/10 rounded-2xl backdrop-blur-md overflow-hidden flex flex-col">
-                {/* Formatting Toolbar */}
-                <div className="bg-white/5 border-b border-white/10 p-2.5 flex items-center gap-1.5 flex-wrap">
-                  <div className="flex items-center gap-0.5">
+                {/* Mode Selector Sub-bar */}
+                <div className="bg-[#020e24]/80 border-b border-white/10 px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-1.5">
                     <button
                       type="button"
-                      onClick={() => insertFormatting('<h2>', '</h2>')}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition text-xs font-bold"
-                      title="Heading 2"
+                      onClick={() => setEditorTab('html')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                        editorTab === 'html'
+                          ? 'bg-[#5482b4] text-white shadow'
+                          : 'text-white/60 hover:text-white hover:bg-white/5'
+                      }`}
                     >
-                      <Heading2 className="w-4 h-4" />
+                      <Code className="w-3.5 h-3.5" />
+                      <span>HTML & Tailwind</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => insertFormatting('<h3>', '</h3>')}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition text-xs font-bold"
-                      title="Heading 3"
+                      onClick={() => setEditorTab('css')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                        editorTab === 'css'
+                          ? 'bg-purple-600 text-white shadow'
+                          : 'text-white/60 hover:text-white hover:bg-white/5'
+                      }`}
                     >
-                      <Heading3 className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertFormatting('<h4>', '</h4>')}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition text-xs font-bold"
-                      title="Heading 4"
-                    >
-                      <Heading4 className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="h-4 w-px bg-white/15" />
-
-                  <div className="flex items-center gap-0.5">
-                    <button
-                      type="button"
-                      onClick={() => insertFormatting('<strong>', '</strong>')}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition"
-                      title="Bold"
-                    >
-                      <Bold className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertFormatting('<em>', '</em>')}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition"
-                      title="Italic"
-                    >
-                      <Italic className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => insertFormatting('<u>', '</u>')}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition"
-                      title="Underline"
-                    >
-                      <Underline className="w-4 h-4" />
+                      <Sliders className="w-3.5 h-3.5 text-purple-300" />
+                      <span>Custom CSS</span>
+                      {customCss.trim() && (
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      )}
                     </button>
                   </div>
 
-                  <div className="h-4 w-px bg-white/15" />
-
-                  <div className="flex items-center gap-0.5">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        insertFormatting('<ul>\n  <li>', '</li>\n  <li>Item 2</li>\n</ul>')
-                      }
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition"
-                      title="Bullet List"
-                    >
-                      <List className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        insertFormatting('<ol>\n  <li>', '</li>\n  <li>Item 2</li>\n</ol>')
-                      }
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition"
-                      title="Numbered List"
-                    >
-                      <ListOrdered className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        insertFormatting('<blockquote>"', '"</blockquote>')
-                      }
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition"
-                      title="Blockquote"
-                    >
-                      <Quote className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        insertFormatting('<pre><code>\n', '\n</code></pre>')
-                      }
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition"
-                      title="Code Block"
-                    >
-                      <Code className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="h-4 w-px bg-white/15" />
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={handleOpenLinkModal}
-                      className="p-1.5 px-2.5 rounded-lg bg-[#5482b4]/20 hover:bg-[#5482b4]/40 text-[#c3e9fe] hover:text-white transition flex items-center gap-1.5 text-xs font-semibold border border-[#5482b4]/40 cursor-pointer"
-                      title="Insert Hyperlink, Internal Service Link, or In-Page Anchor (#id)"
-                    >
-                      <Link2 className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>Link / Anchor</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const url = prompt('Enter image URL:');
-                        if (url) {
-                          insertFormatting(`<img src="${url}" alt="`, '" class="rounded-xl my-4 border border-white/10 max-h-96 w-full object-cover" />');
-                        }
-                      }}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition cursor-pointer"
-                      title="Insert Image URL"
-                    >
-                      <ImageIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="h-4 w-px bg-white/15" />
-
-                  {/* Pro Content Components */}
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={handleInsertTable}
-                      className="p-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition flex items-center gap-1 text-xs font-medium cursor-pointer"
-                      title="Insert Comparison Table"
-                    >
-                      <TableIcon className="w-3.5 h-3.5 text-cyan-400" />
-                      <span className="hidden sm:inline">Table</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleInsertCallout('tip')}
-                      className="p-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition flex items-center gap-1 text-xs font-medium cursor-pointer"
-                      title="Insert Pro Tip / Callout Box"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                      <span className="hidden sm:inline">Callout</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleInsertMetrics}
-                      className="p-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition flex items-center gap-1 text-xs font-medium cursor-pointer"
-                      title="Insert 3-Column Metrics Grid"
-                    >
-                      <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="hidden sm:inline">KPI Metrics</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const idVal = prompt('Enter section Anchor ID (e.g. key-features):');
-                        if (idVal) {
-                          const clean = idVal.trim().replace(/^#/, '').toLowerCase().replace(/\s+/g, '-');
-                          insertFormatting(`<h2 id="${clean}">`, `</h2>`);
-                        }
-                      }}
-                      className="p-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition flex items-center gap-1 text-xs font-medium cursor-pointer"
-                      title="Set an anchor ID destination (<h2 id='...'>)"
-                    >
-                      <Bookmark className="w-3.5 h-3.5 text-purple-400" />
-                      <span className="hidden sm:inline">#Target</span>
-                    </button>
+                  {/* Layout Mode: Standard Article vs Full Custom Page */}
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-white/50 hidden sm:inline">Page Mode:</span>
+                    <div className="bg-[#042558]/80 p-0.5 rounded-lg border border-white/10 flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => setLayoutMode('standard')}
+                        className={`px-2.5 py-1 rounded text-[11px] font-semibold transition cursor-pointer ${
+                          layoutMode === 'standard'
+                            ? 'bg-[#5482b4] text-white shadow'
+                            : 'text-white/60 hover:text-white'
+                        }`}
+                        title="Standard editorial post layout with header, cover, and reader box"
+                      >
+                        Editorial Post
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLayoutMode('custom-page')}
+                        className={`px-2.5 py-1 rounded text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 ${
+                          layoutMode === 'custom-page'
+                            ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow'
+                            : 'text-white/60 hover:text-white'
+                        }`}
+                        title="Full custom page: Full-width canvas with custom hero, Tailwind grids, and complete layout design"
+                      >
+                        <span>🚀 Full Custom Page</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                {/* Main Textarea */}
-                <textarea
-                  ref={contentTextareaRef}
-                  rows={22}
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Compose your article using HTML formatting or the toolbar above..."
-                  className="w-full p-5 bg-transparent text-sm sm:text-base text-white/90 placeholder-white/30 focus:outline-none font-mono leading-relaxed resize-y min-h-[420px]"
-                />
+                {/* Tab 1: HTML & Tailwind Editor */}
+                {editorTab === 'html' ? (
+                  <>
+                    {/* Formatting Toolbar */}
+                    <div className="bg-white/5 border-b border-white/10 p-2.5 flex items-center gap-1.5 flex-wrap">
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('<h2>', '</h2>')}
+                          className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition text-xs font-bold cursor-pointer"
+                          title="Heading 2"
+                        >
+                          <Heading2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('<h3>', '</h3>')}
+                          className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition text-xs font-bold cursor-pointer"
+                          title="Heading 3"
+                        >
+                          <Heading3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('<h4>', '</h4>')}
+                          className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition text-xs font-bold cursor-pointer"
+                          title="Heading 4"
+                        >
+                          <Heading4 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="h-4 w-px bg-white/15" />
+
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('<strong>', '</strong>')}
+                          className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition cursor-pointer"
+                          title="Bold"
+                        >
+                          <Bold className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('<em>', '</em>')}
+                          className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition cursor-pointer"
+                          title="Italic"
+                        >
+                          <Italic className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('<u>', '</u>')}
+                          className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition cursor-pointer"
+                          title="Underline"
+                        >
+                          <Underline className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="h-4 w-px bg-white/15" />
+
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            insertFormatting('<ul>\n  <li>', '</li>\n  <li>Item 2</li>\n</ul>')
+                          }
+                          className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition cursor-pointer"
+                          title="Bullet List"
+                        >
+                          <List className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            insertFormatting('<ol>\n  <li>', '</li>\n  <li>Item 2</li>\n</ol>')
+                          }
+                          className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition cursor-pointer"
+                          title="Numbered List"
+                        >
+                          <ListOrdered className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            insertFormatting('<blockquote>"', '"</blockquote>')
+                          }
+                          className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition cursor-pointer"
+                          title="Blockquote"
+                        >
+                          <Quote className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            insertFormatting('<pre><code>\n', '\n</code></pre>')
+                          }
+                          className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition cursor-pointer"
+                          title="Code Block"
+                        >
+                          <Code className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="h-4 w-px bg-white/15" />
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={handleOpenLinkModal}
+                          className="p-1.5 px-2.5 rounded-lg bg-[#5482b4]/20 hover:bg-[#5482b4]/40 text-[#c3e9fe] hover:text-white transition flex items-center gap-1.5 text-xs font-semibold border border-[#5482b4]/40 cursor-pointer"
+                          title="Insert Hyperlink, Internal Service Link, or In-Page Anchor (#id)"
+                        >
+                          <Link2 className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Link / Anchor</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = prompt('Enter image URL:');
+                            if (url) {
+                              insertFormatting(`<img src="${url}" alt="`, '" class="rounded-xl my-4 border border-white/10 max-h-96 w-full object-cover" />');
+                            }
+                          }}
+                          className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition cursor-pointer"
+                          title="Insert Image URL"
+                        >
+                          <ImageIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="h-4 w-px bg-white/15" />
+
+                      {/* Pro Content Components */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={handleInsertTable}
+                          className="p-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition flex items-center gap-1 text-xs font-medium cursor-pointer"
+                          title="Insert Comparison Table"
+                        >
+                          <TableIcon className="w-3.5 h-3.5 text-cyan-400" />
+                          <span className="hidden sm:inline">Table</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleInsertCallout('tip')}
+                          className="p-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition flex items-center gap-1 text-xs font-medium cursor-pointer"
+                          title="Insert Pro Tip / Callout Box"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                          <span className="hidden sm:inline">Callout</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleInsertMetrics}
+                          className="p-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition flex items-center gap-1 text-xs font-medium cursor-pointer"
+                          title="Insert 3-Column Metrics Grid"
+                        >
+                          <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="hidden sm:inline">KPI Metrics</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const idVal = prompt('Enter section Anchor ID (e.g. key-features):');
+                            if (idVal) {
+                              const clean = idVal.trim().replace(/^#/, '').toLowerCase().replace(/\s+/g, '-');
+                              insertFormatting(`<h2 id="${clean}">`, `</h2>`);
+                            }
+                          }}
+                          className="p-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white transition flex items-center gap-1 text-xs font-medium cursor-pointer"
+                          title="Set an anchor ID destination (<h2 id='...'>)"
+                        >
+                          <Bookmark className="w-3.5 h-3.5 text-purple-400" />
+                          <span className="hidden sm:inline">#Target</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Main HTML / Tailwind Textarea */}
+                    <textarea
+                      ref={contentTextareaRef}
+                      rows={22}
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder="Compose your article or custom page using HTML and Tailwind CSS classes (e.g. <div className='grid grid-cols-3 gap-6 bg-purple-900/40 p-8 rounded-3xl'>)..."
+                      className="w-full p-5 bg-transparent text-sm sm:text-base text-white/90 placeholder-white/30 focus:outline-none font-mono leading-relaxed resize-y min-h-[420px]"
+                    />
+                  </>
+                ) : (
+                  /* Tab 2: Custom CSS Stylesheet Editor */
+                  <div className="flex flex-col flex-1">
+                    <div className="p-3.5 bg-purple-950/40 border-b border-purple-500/20 text-xs text-purple-200 flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-purple-300" />
+                        <span><strong>Custom CSS Stylesheet:</strong> Write pure CSS classes, keyframe animations, or style overrides. Automatically applies to this article.</span>
+                      </div>
+                      <span className="text-[10px] text-purple-300/70 font-mono bg-purple-900/40 px-2 py-0.5 rounded">
+                        Auto-injected into &lt;style&gt;
+                      </span>
+                    </div>
+
+                    <textarea
+                      rows={22}
+                      value={customCss}
+                      onChange={(e) => setCustomCss(e.target.value)}
+                      placeholder={`/* Custom CSS for this article / custom page */\n.hero-card {\n  background: radial-gradient(circle at top left, #1e1b4b, #041026);\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);\n  border: 1px solid rgba(255, 255, 255, 0.1);\n}\n\n@keyframes floatAnim {\n  0%, 100% { transform: translateY(0); }\n  50% { transform: translateY(-8px); }\n}\n\n.float-item {\n  animation: floatAnim 3s ease-in-out infinite;\n}`}
+                      className="w-full p-5 bg-transparent text-sm sm:text-base text-purple-200 placeholder-white/20 focus:outline-none font-mono leading-relaxed resize-y min-h-[420px]"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Split View Live Rendering (Desktop) */}
             {viewMode === 'split' && (
               <div className="hidden lg:block lg:col-span-6 bg-[#042558]/20 border border-white/10 rounded-2xl p-6 backdrop-blur-md overflow-y-auto max-h-[850px] space-y-5">
+                {/* Injected Custom CSS */}
+                {customCss && <style dangerouslySetInnerHTML={{ __html: customCss }} />}
+
                 <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs text-white/60">
                   <span className="font-bold text-[#5482b4] uppercase tracking-wider flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5" /> Live Render
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {layoutMode === 'custom-page' ? '🚀 Custom Page Live Render' : 'Live Editorial Render'}
                   </span>
                   <span>{wordStats.readTime}</span>
                 </div>
 
-                <h1 className="text-2xl font-bold text-white">
-                  {title || 'Article Title'}
-                </h1>
-
-                {coverImage && (
-                  <img
-                    src={coverImage}
-                    alt={title}
-                    className="w-full h-44 object-cover rounded-xl border border-white/10"
+                {layoutMode === 'custom-page' ? (
+                  /* Custom Page Unconstrained Render in Split View */
+                  <div
+                    className="custom-blog-canvas w-full"
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        content || '<p className="text-white/40 italic">Type on the left to see your custom layout...</p>',
+                    }}
                   />
-                )}
+                ) : (
+                  <>
+                    <h1 className="text-2xl font-bold text-white">
+                      {title || 'Article Title'}
+                    </h1>
 
-                <div
-                  className="prose prose-invert max-w-none text-white/80 space-y-4 text-sm leading-relaxed
-                    [&>h2]:text-xl [&>h2]:font-bold [&>h2]:text-white [&>h2]:mt-6 [&>h2]:border-b [&>h2]:border-white/10 [&>h2]:pb-1
-                    [&>h3]:text-lg [&>h3]:font-bold [&>h3]:text-white
-                    [&>blockquote]:border-l-4 [&>blockquote]:border-[#5482b4] [&>blockquote]:pl-3 [&>blockquote]:text-[#c3e9fe] [&>blockquote]:bg-[#042558]/30 [&>blockquote]:py-1.5 [&>blockquote]:rounded-r
-                    [&>code]:bg-white/10 [&>code]:text-[#c3e9fe] [&>code]:px-1 [&>code]:rounded
-                    [&_a]:text-cyan-400 [&_a]:underline hover:[&_a]:text-cyan-300
-                    [&_table]:w-full [&_table]:my-4 [&_table]:border-collapse [&_table]:rounded-lg [&_table]:overflow-hidden [&_table]:border [&_table]:border-white/10
-                    [&_th]:bg-[#042558]/80 [&_th]:p-2.5 [&_th]:text-left [&_th]:text-xs [&_th]:font-bold [&_th]:text-cyan-300 [&_th]:border-b [&_th]:border-white/10
-                    [&_td]:p-2.5 [&_td]:text-xs [&_td]:border-b [&_td]:border-white/5 [&_td]:bg-[#020e24]/40
-                    [&_.callout-box]:p-3 [&_.callout-box]:my-4 [&_.callout-box]:rounded-xl [&_.callout-box]:border
-                    [&_.callout-info]:bg-[#042558]/40 [&_.callout-info]:border-[#5482b4]/40 [&_.callout-info]:text-[#c3e9fe]
-                    [&_.callout-tip]:bg-amber-500/10 [&_.callout-tip]:border-amber-500/30 [&_.callout-tip]:text-amber-200
-                    [&_.callout-cta]:bg-gradient-to-br [&_.callout-cta]:from-[#042558] [&_.callout-cta]:to-[#020e24] [&_.callout-cta]:border-[#5482b4]/50
-                    [&_.cta-btn]:inline-block [&_.cta-btn]:px-4 [&_.cta-btn]:py-2 [&_.cta-btn]:my-2 [&_.cta-btn]:rounded-lg [&_.cta-btn]:bg-[#5482b4] [&_.cta-btn]:text-white [&_.cta-btn]:font-bold [&_.cta-btn]:no-underline hover:[&_.cta-btn]:bg-[#426a97]
-                    [&_.metrics-grid]:grid [&_.metrics-grid]:grid-cols-1 [&_.metrics-grid]:sm:grid-cols-3 [&_.metrics-grid]:gap-2 [&_.metrics-grid]:my-4
-                    [&_.metric-card]:p-3 [&_.metric-card]:rounded-lg [&_.metric-card]:bg-[#042558]/40 [&_.metric-card]:border [&_.metric-card]:border-white/10 [&_.metric-card]:text-center"
-                  dangerouslySetInnerHTML={{
-                    __html:
-                      content || '<p className="text-white/40 italic">Type on the left to see live rendering...</p>',
-                  }}
-                />
+                    {coverImage && (
+                      <img
+                        src={coverImage}
+                        alt={title}
+                        className="w-full h-44 object-cover rounded-xl border border-white/10"
+                      />
+                    )}
+
+                    <div
+                      className="prose prose-invert max-w-none text-white/80 space-y-4 text-sm leading-relaxed
+                        [&>h2]:text-xl [&>h2]:font-bold [&>h2]:text-white [&>h2]:mt-6 [&>h2]:border-b [&>h2]:border-white/10 [&>h2]:pb-1
+                        [&>h3]:text-lg [&>h3]:font-bold [&>h3]:text-white
+                        [&>blockquote]:border-l-4 [&>blockquote]:border-[#5482b4] [&>blockquote]:pl-3 [&>blockquote]:text-[#c3e9fe] [&>blockquote]:bg-[#042558]/30 [&>blockquote]:py-1.5 [&>blockquote]:rounded-r
+                        [&>code]:bg-white/10 [&>code]:text-[#c3e9fe] [&>code]:px-1 [&>code]:rounded
+                        [&_a]:text-cyan-400 [&_a]:underline hover:[&_a]:text-cyan-300
+                        [&_table]:w-full [&_table]:my-4 [&_table]:border-collapse [&_table]:rounded-lg [&_table]:overflow-hidden [&_table]:border [&_table]:border-white/10
+                        [&_th]:bg-[#042558]/80 [&_th]:p-2.5 [&_th]:text-left [&_th]:text-xs [&_th]:font-bold [&_th]:text-cyan-300 [&_th]:border-b [&_th]:border-white/10
+                        [&_td]:p-2.5 [&_td]:text-xs [&_td]:border-b [&_td]:border-white/5 [&_td]:bg-[#020e24]/40
+                        [&_.callout-box]:p-3 [&_.callout-box]:my-4 [&_.callout-box]:rounded-xl [&_.callout-box]:border
+                        [&_.callout-info]:bg-[#042558]/40 [&_.callout-info]:border-[#5482b4]/40 [&_.callout-info]:text-[#c3e9fe]
+                        [&_.callout-tip]:bg-amber-500/10 [&_.callout-tip]:border-amber-500/30 [&_.callout-tip]:text-amber-200
+                        [&_.callout-cta]:bg-gradient-to-br [&_.callout-cta]:from-[#042558] [&_.callout-cta]:to-[#020e24] [&_.callout-cta]:border-[#5482b4]/50
+                        [&_.cta-btn]:inline-block [&_.cta-btn]:px-4 [&_.cta-btn]:py-2 [&_.cta-btn]:my-2 [&_.cta-btn]:rounded-lg [&_.cta-btn]:bg-[#5482b4] [&_.cta-btn]:text-white [&_.cta-btn]:font-bold [&_.cta-btn]:no-underline hover:[&_.cta-btn]:bg-[#426a97]
+                        [&_.metrics-grid]:grid [&_.metrics-grid]:grid-cols-1 [&_.metrics-grid]:sm:grid-cols-3 [&_.metrics-grid]:gap-2 [&_.metrics-grid]:my-4
+                        [&_.metric-card]:p-3 [&_.metric-card]:rounded-lg [&_.metric-card]:bg-[#042558]/40 [&_.metric-card]:border [&_.metric-card]:border-white/10 [&_.metric-card]:text-center"
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          content || '<p className="text-white/40 italic">Type on the left to see live rendering...</p>',
+                      }}
+                    />
+                  </>
+                )}
               </div>
             )}
 
@@ -1583,7 +1728,7 @@ const BlogStudio = () => {
                   <span className="p-1.5 rounded-lg bg-amber-500/20 text-amber-300">
                     <Sparkles className="w-5 h-5" />
                   </span>
-                  <h3 className="text-xl font-black text-white">5 Ready-to-Use Blog Templates</h3>
+                  <h3 className="text-xl font-black text-white">{blogTemplates.length} Ready-to-Use Blog &amp; Page Templates</h3>
                 </div>
                 <p className="text-xs text-white/60 mt-1">
                   Click any production-grade blueprint below to instantly populate title, meta, tags, and rich HTML with tables and anchor jumps.
