@@ -944,7 +944,7 @@ const BlogStudio = () => {
                     </button>
                   </div>
                   <div className="text-[11px] text-white/40 truncate">
-                    Live Link: <span className="text-[#c3e9fe]">https://nefftosolution.com/blogs/{slug || '...' }</span>
+                    Live Link: <span className="text-[#c3e9fe]">https://www.nefftosolution.com/blogs/{slug || '...' }</span>
                   </div>
                 </div>
 
@@ -1667,7 +1667,7 @@ const BlogStudio = () => {
                     {/* Google SERP Snippet Preview */}
                     <div className="p-3.5 rounded-xl bg-[#020e24] border border-white/10 space-y-1">
                       <div className="text-[11px] text-gray-400 truncate">
-                        https://nefftosolution.com &gt; blogs &gt; {slug || 'article-slug'}
+                        https://www.nefftosolution.com &gt; blogs &gt; {slug || 'article-slug'}
                       </div>
                       <div className="text-sm font-semibold text-[#8ab4f8] hover:underline cursor-pointer truncate">
                         {metaTitle || title || 'Your Article Title'}

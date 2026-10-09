@@ -16,7 +16,7 @@ const getWebsiteBase = () => {
       return 'http://localhost:5173';
     }
   }
-  return 'https://nefftosolution.com';
+  return 'https://www.nefftosolution.com';
 };
 
 export const API_BASE = getApiBase();
